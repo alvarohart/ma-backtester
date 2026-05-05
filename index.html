@@ -693,13 +693,11 @@ async function fetchCoinGecko(coinId, days, apiKey) {
   // CoinGecko market_chart endpoint — returns daily prices from coin origin
   // For 'max' days we use the full range, otherwise specify days count
   const daysParam = days === 'max' ? 'max' : parseInt(days);
-  const url = `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=usd&days=${daysParam}&interval=daily&precision=6`;
+  // Pass key as query param — more reliable from browser than custom headers
+  const url = `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=usd&days=${daysParam}&interval=daily&precision=6&x_cg_demo_api_key=${encodeURIComponent(apiKey.trim())}`;
 
   const res = await fetch(url, {
-    headers: {
-      'accept': 'application/json',
-      'x-cg-demo-api-key': apiKey.trim()
-    },
+    headers: { 'accept': 'application/json' },
     signal: AbortSignal.timeout(20000)
   });
 
