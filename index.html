@@ -345,13 +345,16 @@ tr.best td{background:var(--blue-dim);color:#93c5fd}
         </div>
       </div>
       <div class="field">
-        <label>Historial</label>
+        <label>Historial <span style="font-size:10px;color:var(--amber)">(Demo: máx 1 año)</span></label>
         <select id="gecko-days">
-          <option value="365">1 año</option>
-          <option value="730">2 años</option>
-          <option value="1825" selected>5 años</option>
-          <option value="max">Máximo disponible</option>
+          <option value="90">3 meses</option>
+          <option value="180">6 meses</option>
+          <option value="365" selected>1 año (máximo Demo)</option>
         </select>
+      </div>
+      <div class="warn" style="margin-bottom:8px;">
+        El plan Demo incluye hasta <strong>365 días</strong> de historial.<br>
+        Para más historial considera el plan Analyst ($129/mes).
       </div>
       <div class="warn">
         IDs frecuentes: <code>bitcoin</code> · <code>ethereum</code> · <code>solana</code> · <code>pepe</code> · <code>sui</code> · <code>aptos</code> · <code>sei-network</code> · <code>injective-protocol</code>
@@ -692,7 +695,8 @@ async function fetchCoinGecko(coinId, days, apiKey) {
 
   // CoinGecko market_chart — daily prices from coin origin
   // Note: 'max' days returns all available history
-  const daysParam = days === 'max' ? 'max' : parseInt(days);
+  // Demo plan: max 365 days, no interval param (auto daily for >90 days)
+  const daysParam = days === 'max' ? 365 : Math.min(parseInt(days), 365);
   const key = apiKey.trim();
   const url = `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=usd&days=${daysParam}&x_cg_demo_api_key=${encodeURIComponent(key)}`;
 
