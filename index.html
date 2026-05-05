@@ -690,21 +690,30 @@ async function fetchCoinGecko(coinId, days, apiKey) {
   if (!apiKey || apiKey.trim().length < 10) throw new Error('Ingresa tu API key de CoinGecko.');
   const id = coinId.toLowerCase().trim();
 
-  // CoinGecko market_chart endpoint — returns daily prices from coin origin
-  // For 'max' days we use the full range, otherwise specify days count
+  // CoinGecko market_chart — daily prices from coin origin
+  // Note: 'max' days returns all available history
   const daysParam = days === 'max' ? 'max' : parseInt(days);
-  // Pass key as query param — more reliable from browser than custom headers
-  const url = `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=usd&days=${daysParam}&interval=daily&precision=6&x_cg_demo_api_key=${encodeURIComponent(apiKey.trim())}`;
+  const key = apiKey.trim();
+  const url = `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=usd&days=${daysParam}&x_cg_demo_api_key=${encodeURIComponent(key)}`;
 
-  const res = await fetch(url, {
-    headers: { 'accept': 'application/json' },
-    signal: AbortSignal.timeout(20000)
-  });
+  let res;
+  try {
+    res = await fetch(url, { signal: AbortSignal.timeout(20000) });
+  } catch(e) {
+    throw new Error('Error de conexión con CoinGecko: ' + e.message);
+  }
 
-  if (res.status === 401) throw new Error('API key de CoinGecko inválida. Verifica que la copiaste correctamente.');
+  // Read response text for better error diagnosis
+  const text = await res.text();
+  if (res.status === 401) {
+    throw new Error(`CoinGecko 401 — Key inválida o no activada. Respuesta: ${text.slice(0,100)}`);
+  }
   if (res.status === 404) throw new Error(`Moneda "${coinId}" no encontrada. Verifica el ID en coingecko.com`);
-  if (res.status === 429) throw new Error('Límite de CoinGecko alcanzado (30 req/min). Espera un momento e intenta de nuevo.');
-  if (!res.ok) throw new Error(`Error CoinGecko: HTTP ${res.status}`);
+  if (res.status === 429) throw new Error('Límite de CoinGecko alcanzado (30/min). Espera un momento.');
+  if (!res.ok) throw new Error(`CoinGecko HTTP ${res.status}: ${text.slice(0,120)}`);
+
+  let data;
+  try { data = JSON.parse(text); } catch(e) { throw new Error('Respuesta inválida de CoinGecko: ' + text.slice(0,100)); }
 
   const data = await res.json();
   if (!data.prices || data.prices.length < 10) throw new Error('Datos insuficientes de CoinGecko.');
