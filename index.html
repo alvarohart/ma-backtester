@@ -276,33 +276,19 @@ tr.best td{background:var(--blue-dim);color:#93c5fd}
   <!-- Source selector -->
   <div class="card">
     <div class="card-title">Fuente de datos</div>
-    <div class="src-tabs" style="grid-template-columns:1fr 1fr 1fr;">
-      <div class="src-tab on" id="stab-crypto" onclick="setSource('crypto')">Crypto</div>
+    <div class="src-tabs" style="grid-template-columns:1fr 1fr 1fr 1fr;">
+      <div class="src-tab on" id="stab-crypto" onclick="setSource('crypto')">Binance</div>
+      <div class="src-tab" id="stab-gecko" onclick="setSource('gecko')">CoinGecko</div>
       <div class="src-tab" id="stab-stocks" onclick="setSource('stocks')">Acciones</div>
       <div class="src-tab" id="stab-relative" onclick="setSource('relative')">A/B Ratio</div>
     </div>
 
-    <!-- CRYPTO (Binance / Gate.io) -->
+    <!-- CRYPTO (Binance) -->
     <div id="src-crypto">
-
-      <!-- Exchange selector -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;">
-        <div class="coin-btn on" id="exch-binance" onclick="setExchange('binance')">
-          <div style="font-size:13px;margin-bottom:2px;">🔶</div>
-          <div style="font-weight:600;">Binance</div>
-          <div style="font-size:10px;opacity:.7;">~3 años · 500+ pares</div>
-        </div>
-        <div class="coin-btn" id="exch-gate" onclick="setExchange('gate')">
-          <div style="font-size:13px;margin-bottom:2px;">🔷</div>
-          <div style="font-weight:600;">Gate.io</div>
-          <div style="font-size:10px;opacity:.7;">Más altcoins · listing temprano</div>
-        </div>
+      <div class="info">
+        <strong>Binance</strong> — sin API key, CORS abierto.<br>
+        Historial extendido via múltiples requests encadenadas.
       </div>
-
-      <div class="info" id="exch-info">
-        <strong>Binance</strong> — sin API key, CORS abierto, historial diario ~3 años.
-      </div>
-
       <div style="font-size:11px;color:var(--text2);margin-bottom:6px;">Selección rápida</div>
       <div class="coin-grid">
         <div class="coin-btn on" id="coin-btn-0" onclick="setCoin(0,this)">₿ Bitcoin</div>
@@ -314,12 +300,11 @@ tr.best td{background:var(--blue-dim);color:#93c5fd}
         <div class="coin-btn" id="coin-btn-6" onclick="setCoin(6,this)">Ð Dogecoin</div>
         <div class="coin-btn" id="coin-btn-7" onclick="setCoin(7,this)">▲ Avalanche</div>
       </div>
-
       <div class="field">
-        <label id="symbol-label">Par de Binance</label>
-        <input id="crypto-symbol" type="text" value="BTCUSDT" placeholder="BTCUSDT o BTC_USDT...">
-        <div style="font-size:10px;color:var(--text3);margin-top:3px;" id="symbol-hint">
-          Binance: <code>BTCUSDT</code> · Gate.io: <code>BTC_USDT</code>
+        <label>Par de Binance</label>
+        <input id="crypto-symbol" type="text" value="BTCUSDT" placeholder="BTCUSDT, ETHUSDT, SOLUSDT...">
+        <div style="font-size:10px;color:var(--text3);margin-top:3px;">
+          Ejemplos: <code>BTCUSDT</code> · <code>ETHUSDT</code> · <code>SOLUSDT</code> · <code>PEPEUSDT</code>
         </div>
       </div>
       <div class="field">
@@ -330,12 +315,46 @@ tr.best td{background:var(--blue-dim);color:#93c5fd}
         </select>
       </div>
       <div class="field">
-        <label>Cantidad de historial</label>
+        <label>Historial</label>
         <select id="binance-days">
           <option value="365">1 año</option>
           <option value="730">2 años</option>
           <option value="1000" selected>~3 años</option>
+          <option value="1500">~4 años</option>
+          <option value="2000">~5 años</option>
         </select>
+      </div>
+    </div>
+
+    <!-- COINGECKO -->
+    <div id="src-gecko" style="display:none">
+      <div class="info">
+        <strong>CoinGecko</strong> — historial completo desde el origen de cada crypto.<br>
+        Key Demo gratuita en: <a href="https://www.coingecko.com/en/api" target="_blank" style="color:#93c5fd;">coingecko.com/en/api</a>
+      </div>
+      <div class="field">
+        <label>Tu API key de CoinGecko</label>
+        <input id="gecko-key" type="text" placeholder="CG-xxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+        <div style="font-size:10px;color:var(--text3);margin-top:3px;">Plan Demo gratuito · 30 req/min · 10,000/mes</div>
+      </div>
+      <div class="field">
+        <label>ID de la moneda (CoinGecko ID)</label>
+        <input id="gecko-id" type="text" value="bitcoin" placeholder="bitcoin, ethereum, solana, pepe...">
+        <div style="font-size:10px;color:var(--text3);margin-top:3px;">
+          Busca el ID en la URL de coingecko.com/en/coins/<strong>bitcoin</strong>
+        </div>
+      </div>
+      <div class="field">
+        <label>Historial</label>
+        <select id="gecko-days">
+          <option value="365">1 año</option>
+          <option value="730">2 años</option>
+          <option value="1825" selected>5 años</option>
+          <option value="max">Máximo disponible</option>
+        </select>
+      </div>
+      <div class="warn">
+        IDs frecuentes: <code>bitcoin</code> · <code>ethereum</code> · <code>solana</code> · <code>pepe</code> · <code>sui</code> · <code>aptos</code> · <code>sei-network</code> · <code>injective-protocol</code>
       </div>
     </div>
 
@@ -589,7 +608,7 @@ function onTFChange() {
 // ─── Source toggle ───────────────────────────────────────────────────────────
 function setSource(s) {
   activeSource = s;
-  ['crypto','stocks','relative'].forEach(t => {
+  ['crypto','gecko','stocks','relative'].forEach(t => {
     document.getElementById('stab-'+t).className = 'src-tab' + (s===t?' on':'');
     document.getElementById('src-'+t).style.display = s===t ? '' : 'none';
   });
@@ -607,107 +626,107 @@ function toggleDenType() {
 
 // Coin quick-select data for both exchanges
 const COINS = [
-  { name: 'Bitcoin',   binance: 'BTCUSDT',  gate: 'BTC_USDT'  },
-  { name: 'Ethereum',  binance: 'ETHUSDT',  gate: 'ETH_USDT'  },
-  { name: 'Solana',    binance: 'SOLUSDT',  gate: 'SOL_USDT'  },
-  { name: 'BNB',       binance: 'BNBUSDT',  gate: 'BNB_USDT'  },
-  { name: 'XRP',       binance: 'XRPUSDT',  gate: 'XRP_USDT'  },
-  { name: 'Cardano',   binance: 'ADAUSDT',  gate: 'ADA_USDT'  },
-  { name: 'Dogecoin',  binance: 'DOGEUSDT', gate: 'DOGE_USDT' },
-  { name: 'Avalanche', binance: 'AVAXUSDT', gate: 'AVAX_USDT' },
+  { binance: 'BTCUSDT'  },
+  { binance: 'ETHUSDT'  },
+  { binance: 'SOLUSDT'  },
+  { binance: 'BNBUSDT'  },
+  { binance: 'XRPUSDT'  },
+  { binance: 'ADAUSDT'  },
+  { binance: 'DOGEUSDT' },
+  { binance: 'AVAXUSDT' },
 ];
-let activeExchange = 'binance';
 
-function setExchange(exch) {
-  activeExchange = exch;
-  // Update exchange buttons
-  document.getElementById('exch-binance').className = 'coin-btn' + (exch === 'binance' ? ' on' : '');
-  document.getElementById('exch-gate').className    = 'coin-btn' + (exch === 'gate'    ? ' on' : '');
-  // Update info box
-  const info = document.getElementById('exch-info');
-  if (exch === 'binance') {
-    info.innerHTML = '<strong>Binance</strong> — sin API key, CORS abierto, historial diario ~3 años.';
-  } else {
-    info.innerHTML = '<strong>Gate.io</strong> — sin API key, más de 1,700 altcoins, listing temprano. Formato: <code>BTC_USDT</code>';
-  }
-  // Update symbol hint
-  document.getElementById('symbol-hint').innerHTML =
-    exch === 'binance'
-      ? 'Binance: <code>BTCUSDT</code> · Gate.io: <code>BTC_USDT</code>'
-      : 'Gate.io usa guión bajo: <code>BTC_USDT</code>, <code>SOL_USDT</code>, <code>PEPE_USDT</code>...';
-  document.getElementById('symbol-label').textContent = exch === 'binance' ? 'Par de Binance' : 'Par de Gate.io';
-  // Update symbol input with current coin in new exchange format
-  const current = document.getElementById('crypto-symbol').value;
-  if (exch === 'binance' && current.includes('_')) {
-    document.getElementById('crypto-symbol').value = current.replace('_','');
-  } else if (exch === 'gate' && !current.includes('_')) {
-    // Insert underscore before USDT
-    document.getElementById('crypto-symbol').value = current.replace(/(USDT|BUSD|BTC|ETH)$/, '_$1');
-  }
-}
 
 function setCoin(idx, el) {
-  const coin = COINS[idx];
-  document.getElementById('crypto-symbol').value = activeExchange === 'binance' ? coin.binance : coin.gate;
-  document.querySelectorAll('.coin-btn').forEach(b => {
-    if (!b.id.startsWith('exch-')) b.className = 'coin-btn';
-  });
+  document.getElementById('crypto-symbol').value = COINS[idx].binance;
+  document.querySelectorAll('.coin-btn').forEach(b => b.className = 'coin-btn');
   el.className = 'coin-btn on';
 }
 
 // ─── Binance fetch ───────────────────────────────────────────────────────────
 async function fetchBinance(symbol, days) {
-  // Binance public API: no auth, CORS open, returns closed daily candles
+  // Binance public API: no auth, CORS open
+  // Supports >1000 candles via chained requests
   const tf = document.getElementById('binance-tf')?.value || '1d';
-  // In weekly mode, convert days to weeks and cap at 1000 candles
-  let limit, interval;
-  if (tf === '1w') {
-    interval = '1w';
-    limit = Math.min(Math.round(parseInt(days) / 7), 1000);
-  } else {
-    interval = '1d';
-    limit = Math.min(parseInt(days), 1000);
+  const interval = tf === '1w' ? '1w' : '1d';
+  const totalCandles = tf === '1w'
+    ? Math.min(Math.round(parseInt(days) / 7), 2000)
+    : Math.min(parseInt(days), 2000);
+
+  const sym = symbol.toUpperCase();
+  const allCandles = [];
+  let endTime = null;
+  let remaining = totalCandles;
+
+  while (remaining > 0) {
+    const batchSize = Math.min(remaining, 1000);
+    let url = `https://api.binance.com/api/v3/klines?symbol=${sym}&interval=${interval}&limit=${batchSize}`;
+    if (endTime) url += `&endTime=${endTime}`;
+    setStatus(`Descargando ${sym}… (${totalCandles - remaining + batchSize}/${totalCandles} velas)`, '');
+    const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+    if (res.status === 400) throw new Error(`Par "${symbol}" no encontrado en Binance. Prueba BTCUSDT, ETHUSDT, SOLUSDT...`);
+    if (!res.ok) throw new Error(`Error Binance: HTTP ${res.status}`);
+    const batch = await res.json();
+    if (!Array.isArray(batch) || batch.length === 0) break;
+    allCandles.unshift(...batch);
+    endTime = batch[0][0] - 1;
+    remaining -= batch.length;
+    if (batch.length < batchSize) break;
   }
-  const url = `https://api.binance.com/api/v3/klines?symbol=${symbol.toUpperCase()}&interval=${interval}&limit=${limit}`;
-  const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
-  if (res.status === 400) throw new Error(`Par "${symbol}" no encontrado en Binance. Prueba BTCUSDT, ETHUSDT, SOLUSDT...`);
-  if (!res.ok) throw new Error(`Error Binance: HTTP ${res.status}`);
-  const data = await res.json();
-  if (!Array.isArray(data) || data.length < 30) throw new Error('Datos insuficientes. Verifica el símbolo.');
+
+  if (allCandles.length < 30) throw new Error('Datos insuficientes. Verifica el símbolo.');
   const dates = [], prices = [];
-  for (const k of data) {
-    // k[0]=open time, k[4]=close price, k[6]=close time
-    const d = new Date(k[0]);
-    dates.push(d.toISOString().slice(0,10));
+  for (const k of allCandles) {
+    dates.push(new Date(k[0]).toISOString().slice(0, 10));
     prices.push(parseFloat(k[4]));
   }
-  return { dates, prices };
+  return { dates, prices, label: sym };
 }
 
-// ─── Gate.io fetch ───────────────────────────────────────────────────────────
-async function fetchGate(symbol, interval, limit) {
-  // Normalize symbol: accept both BTC_USDT and BTCUSDT
-  let pair = symbol.toUpperCase();
-  if (!pair.includes('_')) {
-    // Try to insert underscore before quote currency
-    pair = pair.replace(/(USDT|BUSD|BTC|ETH|BNB)$/, '_$1');
-  }
-  const gateInterval = interval === '1w' ? '7d' : '1d';
-  const url = `https://api.gateio.ws/api/v4/spot/candlesticks?currency_pair=${pair}&interval=${gateInterval}&limit=${limit}`;
-  const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
-  if (res.status === 400) throw new Error(`Par "${pair}" no encontrado en Gate.io. Verifica el símbolo (ej: BTC_USDT)`);
-  if (!res.ok) throw new Error(`Error Gate.io: HTTP ${res.status}`);
+
+
+// ─── CoinGecko fetch ─────────────────────────────────────────────────────────
+async function fetchCoinGecko(coinId, days, apiKey) {
+  if (!apiKey || apiKey.trim().length < 10) throw new Error('Ingresa tu API key de CoinGecko.');
+  const id = coinId.toLowerCase().trim();
+
+  // CoinGecko market_chart endpoint — returns daily prices from coin origin
+  // For 'max' days we use the full range, otherwise specify days count
+  const daysParam = days === 'max' ? 'max' : parseInt(days);
+  const url = `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=usd&days=${daysParam}&interval=daily&precision=6`;
+
+  const res = await fetch(url, {
+    headers: {
+      'accept': 'application/json',
+      'x-cg-demo-api-key': apiKey.trim()
+    },
+    signal: AbortSignal.timeout(20000)
+  });
+
+  if (res.status === 401) throw new Error('API key de CoinGecko inválida. Verifica que la copiaste correctamente.');
+  if (res.status === 404) throw new Error(`Moneda "${coinId}" no encontrada. Verifica el ID en coingecko.com`);
+  if (res.status === 429) throw new Error('Límite de CoinGecko alcanzado (30 req/min). Espera un momento e intenta de nuevo.');
+  if (!res.ok) throw new Error(`Error CoinGecko: HTTP ${res.status}`);
+
   const data = await res.json();
-  if (!Array.isArray(data) || data.length < 10) throw new Error('Datos insuficientes de Gate.io. Verifica el símbolo.');
-  // Gate returns: [timestamp, volume, close, high, low, open, ...]  — index 2 is close
+  if (!data.prices || data.prices.length < 10) throw new Error('Datos insuficientes de CoinGecko.');
+
   const dates = [], prices = [];
-  for (const k of data) {
-    const d = new Date(parseInt(k[0]) * 1000);
-    dates.push(d.toISOString().slice(0, 10));
-    prices.push(parseFloat(k[2]));
+  for (const [ts, price] of data.prices) {
+    dates.push(new Date(ts).toISOString().slice(0, 10));
+    prices.push(parseFloat(price.toFixed(6)));
   }
-  // Gate returns oldest first already
-  return { dates, prices, label: pair };
+  // Remove duplicate dates (CoinGecko sometimes returns 2 points same day)
+  const seen = new Set();
+  const cleanDates = [], cleanPrices = [];
+  for (let i = 0; i < dates.length; i++) {
+    if (!seen.has(dates[i])) {
+      seen.add(dates[i]);
+      cleanDates.push(dates[i]);
+      cleanPrices.push(prices[i]);
+    }
+  }
+  return { dates: cleanDates, prices: cleanPrices, label: coinId };
 }
 
 // ─── Tiingo fetch ────────────────────────────────────────────────────────────
@@ -825,6 +844,16 @@ async function run() {
       gDates = r.dates; gPrices = r.prices;
       const tfLabel = tf.toUpperCase();
       gLabel = `${r.label || symbol} · ${tfLabel} · ${exchName}`;
+    } else if (activeSource === 'gecko') {
+      const coinId  = document.getElementById('gecko-id').value.trim();
+      const apiKey  = document.getElementById('gecko-key').value.trim();
+      const days    = document.getElementById('gecko-days').value;
+      if (!coinId) throw new Error('Escribe el ID de la moneda.');
+      setStatus(`Descargando ${coinId} desde CoinGecko…`, '');
+      setProg(8);
+      const r = await fetchCoinGecko(coinId, days, apiKey);
+      gDates = r.dates; gPrices = r.prices;
+      gLabel = `${coinId} · CoinGecko`;
     } else if (activeSource === 'stocks') {
       const symbol = document.getElementById('tiingo-symbol').value.trim();
       const apiKey = document.getElementById('tiingo-key').value.trim();
@@ -1011,9 +1040,11 @@ function backtest(pr, fp, sp, maType, dir, commPct) {
     const dd=(maxEq-eq)/maxEq;if(dd>maxDD)maxDD=dd;
     curve.push(eq);
   }
-  const barsPerYear = (activeSource === 'crypto'
-    ? (document.getElementById('binance-tf')?.value === '1w' ? 52 : 365)
-    : (document.getElementById('tiingo-tf')?.value === 'weekly' ? 52 : 365));
+  const barsPerYear = (activeSource === 'crypto' && document.getElementById('binance-tf')?.value === '1w')
+    ? 52
+    : (activeSource === 'stocks' && document.getElementById('tiingo-tf')?.value === 'weekly')
+    ? 52
+    : 365;
   const years=Math.max(pr.length/barsPerYear,0.1);
   return{fp,sp,eq,ann:Math.pow(eq,1/years)-1,maxDD,trades,wr:trades>0?wins/trades:0,curve,sigs,fast,slow};
 }
@@ -1038,9 +1069,11 @@ function switchTab(name,el){
 // ─── Render metrics ──────────────────────────────────────────────────────────
 function renderMetrics(r){
   r = r || best;
-  const bpy = (activeSource === 'crypto'
-    ? (document.getElementById('binance-tf')?.value === '1w' ? 52 : 365)
-    : (document.getElementById('tiingo-tf')?.value === 'weekly' ? 52 : 365));
+  const bpy = (activeSource === 'crypto' && document.getElementById('binance-tf')?.value === '1w')
+    ? 52
+    : (activeSource === 'stocks' && document.getElementById('tiingo-tf')?.value === 'weekly')
+    ? 52
+    : 365;
   const p=gPrices, yrs=Math.max(p.length/bpy,0.1);
   const bahAnn=(Math.pow(p[p.length-1]/p[0],1/yrs)-1)*100;
   const maLabel=document.getElementById('ma-type').value.toUpperCase();
