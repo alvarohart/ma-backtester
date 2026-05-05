@@ -841,19 +841,12 @@ async function run() {
       const days   = document.getElementById('binance-days').value;
       const tf     = document.getElementById('binance-tf').value;
       if (!symbol) throw new Error('Escribe un par de trading.');
-      const exchName = activeExchange === 'gate' ? 'Gate.io' : 'Binance';
-      setStatus(`Descargando ${symbol} desde ${exchName}…`, '');
+      setStatus(`Descargando ${symbol} desde Binance…`, '');
       setProg(8);
-      let r;
-      if (activeExchange === 'gate') {
-        const limit = Math.min(tf === '1w' ? Math.round(parseInt(days)/7) : parseInt(days), 1000);
-        r = await fetchGate(symbol, tf, limit);
-      } else {
-        r = await fetchBinance(symbol, days);
-      }
+      const r = await fetchBinance(symbol, days);
       gDates = r.dates; gPrices = r.prices;
       const tfLabel = tf.toUpperCase();
-      gLabel = `${r.label || symbol} · ${tfLabel} · ${exchName}`;
+      gLabel = `${r.label || symbol} · ${tfLabel} · Binance`;
     } else if (activeSource === 'gecko') {
       const coinId  = document.getElementById('gecko-id').value.trim();
       const apiKey  = document.getElementById('gecko-key').value.trim();
